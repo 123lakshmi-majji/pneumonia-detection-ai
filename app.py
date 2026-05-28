@@ -6,7 +6,6 @@ from datetime import datetime
 import numpy as np
 import tensorflow as tf
 import cv2
-import pytesseract
 
 from PIL import Image
 
@@ -22,7 +21,6 @@ from flask import (
     session
 )
 
-from tensorflow import python
 from werkzeug.utils import secure_filename
 from functools import wraps
 
@@ -84,6 +82,14 @@ def load_dl_model():
 
 
 load_dl_model()
+
+
+# ========================= LAZY LOADER (NEW FIX) =========================
+def get_model():
+    global model
+    if model is None:
+        load_dl_model()
+    return model
 
 
 # ========================= FILE VALIDATION =========================
