@@ -399,7 +399,7 @@ def is_likely_chest_xray(image_path):
 
 
 
-# ========================= PREDICT ROUTE =========================
+    # ========================= PREDICT ROUTE =========================
 @app.route('/predict', methods=['POST'])
 @login_required
 def predict():
@@ -424,17 +424,15 @@ def predict():
         )
         return redirect(url_for('upload_page'))
 
-    # ================= LOAD MODEL =================
+    # ================= LOAD MODEL SAFELY (NEW FIX) =================
+    model = get_model()
+
     if model is None:
-
-        load_dl_model()
-
-        if model is None:
-            flash(
-                "AI Model not loaded. Train the model first.",
-                "warning"
-            )
-            return redirect(url_for('upload_page'))
+        flash(
+            "AI Model not loaded. Please try again later.",
+            "danger"
+        )
+        return redirect(url_for('upload_page'))
 
     # ================= SAVE TEMP FILE =================
     temp_filename = secure_filename(
@@ -473,37 +471,52 @@ def predict():
         return redirect(url_for('upload_page'))
 
     # ================= AI PREDICTION =================
-    try:
+try:
 
-        img = Image.open(temp_path).convert('RGB')
+    img = Image.open(temp_path).convert('RGB')
 
-        img_resized = img.resize((224, 224))
+    img_resized = img.resize((224, 224))
 
-        img_array = np.array(
-            img_resized,
-            dtype=np.float32
+    img_array = np.array(
+        img_resized,
+        dtype=np.float32
+    )
+
+    img_preprocessed = tf.keras.applications.resnet50.preprocess_input(
+        img_array
+    )
+
+    img_batch = np.expand_dims(
+        img_preprocessed,
+        axis=0
+    )
+
+    # ================= MODEL PREDICTION (FIXED FOR RENDER) =================
+    model = get_model()
+    preds = model.predict(img_batch)
+
+    pred_index = np.argmax(preds[0])
+
+    pred_label = label_map.get(
+        str(pred_index),
+        "Unknown"
+    )
+
+    confidence = float(preds[0][pred_index])
+
+    # ================= CONFIDENCE CHECK =================
+    if confidence < 0.60:
+
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+        flash(
+            "❌ Unable to confidently analyze this image. "
+            "Please upload a clearer Chest X-Ray scan.",
+            "danger"
         )
 
-        img_preprocessed = tf.keras.applications.resnet50.preprocess_input(
-            img_array
-        )
-
-        img_batch = np.expand_dims(
-            img_preprocessed,
-            axis=0
-        )
-
-        # ================= MODEL PREDICTION =================
-        preds = model.predict(img_batch)
-
-        pred_index = np.argmax(preds[0])
-
-        pred_label = label_map.get(
-            str(pred_index),
-            "Unknown"
-        )
-
-        confidence = float(preds[0][pred_index])
+        return redirect(url_for('upload_page'))
 
         # ================= CONFIDENCE CHECK =================
         if confidence < 0.60:
@@ -976,22 +989,33 @@ def profile():
         # Handle profile picture upload
         if 'profile_pic' in request.files:
             file = request.files['profile_pic']
+
             if file and file.filename != '' and allowed_file(file.filename):
-                # Delete old picture if exists
-                if profile_pic_path and os.path.exists(profile_pic_path.lstrip('/')):
-                    os.remove(profile_pic_path.lstrip('/'))
+
+                # ================= FIX: SAFE OLD FILE DELETE =================
+                if profile_pic_path:
+                    safe_path = profile_pic_path.replace("/", os.sep).lstrip(os.sep)
+                    if os.path.exists(safe_path):
+                        os.remove(safe_path)
+
                 # Save new picture
-                filename = secure_filename(f"profile_{user_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}")
+                filename = secure_filename(
+                    f"profile_{user_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
+                )
+
                 filepath = os.path.join(PROFILE_UPLOAD_FOLDER, filename)
                 file.save(filepath)
+
                 profile_pic_path = f"/static/profile_pics/{filename}"
 
         # Update database
         db.update_user_profile(user_id, full_name, bio, profile_pic_path)
+
         flash("Profile updated successfully!", "success")
         return redirect(url_for('profile'))
 
     return render_template('profile.html', user=user)
+
 
 # ========================= RUN APP =========================
 if __name__ == '__main__':
