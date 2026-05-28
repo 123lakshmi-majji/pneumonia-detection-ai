@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | PneuVision AI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body.login-page {
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      position: relative;
+    }
+    /* Fixed background image with permanent violet overlay */
+    body.login-page::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      background: linear-gradient(rgba(216, 191, 216, 0.85), rgba(216, 191, 216, 0.85)),
+                  url('https://img.magnific.com/free-vector/clean-medical-background_53876-116875.jpg?semt=ais_hybrid&w=740&q=80') no-repeat center center fixed;
+      background-size: cover;
+      background-position: center;
+    }
+    .btn-medical {
+      background-color: #0d9488;
+      border: none;
+      color: white;
+      transition: all 0.2s;
+    }
+    .btn-medical:hover {
+      background-color: #0f766e;
+      transform: translateY(-1px);
+    }
+    .btn-outline-medical {
+      border: 1px solid #0d9488;
+      color: #0d9488;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .btn-outline-medical:hover {
+      background-color: #0d9488;
+      color: white;
+    }
+    body.login-page .glass-card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+    }
+    /* Top-left corner button */
+    .back-home-top {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body class="login-page">
+
+<!-- Back to Home button - top-left corner -->
+<div class="back-home-top">
+  <a href="/" class="btn btn-outline-medical">
+    <i class="bi bi-house-door-fill me-1"></i> Home
+  </a>
+</div>
+
+<div class="container d-flex align-items-center justify-content-center min-vh-100">
+  <div class="glass-card w-100" style="max-width: 450px;">
+    <h2 class="text-center fw-bold mb-4"><i class="bi bi-box-arrow-in-right text-medical me-2"></i>Login</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }} alert-dismissible fade show">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+      {% endfor %}
+    {% endwith %}
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" required autofocus>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-medical w-100 py-2">Login</button>
+    </form>
+    <p class="text-center mt-3">No account? <a href="/signup">Sign up here</a></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/main.js"></script>
+</body>
+</html>

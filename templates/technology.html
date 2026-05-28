@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PneuVision AI | Technology</title>
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+    :root{--medical:#0d9488;--dark:#062c30;}
+    body{background:#f4f9ff;overflow-x:hidden;}
+    .navbar{backdrop-filter:blur(12px);background:rgba(255,255,255,0.7);border-bottom:1px solid rgba(255,255,255,0.2);}
+    .navbar-brand{font-size:1.7rem;font-weight:700;color:var(--medical);}
+    .nav-link{color:#333 !important;font-weight:500;margin-left:10px;}
+    .nav-link:hover{color:var(--medical) !important;}
+    .btn-medical{background:var(--medical);color:white;padding:12px 28px;border-radius:50px;font-weight:600;transition:0.3s;border:none;}
+    .btn-medical:hover{transform:translateY(-2px);background:#0f766e;}
+    .btn-outline-medical{border:2px solid var(--medical);color:var(--medical);padding:12px 28px;border-radius:50px;font-weight:600;transition:0.3s;background:transparent;}
+    .btn-outline-medical:hover{background:var(--medical);color:white;}
+    .glass-card{background:rgba(255,255,255,0.6);backdrop-filter:blur(18px);border-radius:25px;padding:30px;border:1px solid rgba(255,255,255,0.3);height:100%;transition:0.3s;}
+    .glass-card:hover{transform:translateY(-5px);}
+    .section-title{font-weight:700;color:var(--dark);margin-bottom:1rem;position:relative;display:inline-block;}
+    .section-title:after{content:'';position:absolute;bottom:-8px;left:0;width:60px;height:3px;background:var(--medical);border-radius:3px;}
+    /* Remove underline for specific headings */
+    .section-title.no-underline:after { display: none; }
+    .tech-icon{width:70px;height:70px;background:rgba(13,148,136,0.1);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:auto;margin-bottom:20px;}
+    .tech-icon i{font-size:2rem;color:var(--medical);}
+    .pipeline-step{background:white;border-radius:20px;padding:25px;text-align:center;height:100%;box-shadow:0 5px 20px rgba(0,0,0,0.05);transition:0.3s;}
+    .pipeline-step:hover{transform:translateY(-6px);}
+    .step-number{width:55px;height:55px;background:var(--medical);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;margin:auto;margin-bottom:18px;}
+    .metric-box{text-align:center;padding:25px;border-radius:20px;background:white;box-shadow:0 5px 15px rgba(0,0,0,0.05);transition:0.3s;}
+    .metric-box:hover{transform:translateY(-5px);}
+    .metric-box h2{color:var(--medical);font-weight:700;font-size:2.5rem;}
+    footer{background:white;border-top:1px solid #eee;}
+    @media(max-width:992px){.hero{text-align:center;}}
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR (same as about page) -->
+<nav class="navbar navbar-expand-lg fixed-top py-3">
+  <div class="container">
+    <a class="navbar-brand" href="/"><i class="bi bi-activity"></i> PneuVision AI</a>
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-lg-center">
+        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/technology">Technology</a></li>
+        <li class="nav-item ms-lg-3 mt-3 mt-lg-0"><a href="/login" class="btn btn-outline-medical">Login</a></li>
+        <li class="nav-item ms-lg-2 mt-3 mt-lg-0"><a href="/signup" class="btn btn-medical">Get Started</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container" style="margin-top: 100px;">
+  <!-- Hero section: two columns, working image on the right -->
+  <div class="row align-items-center mb-5">
+    <div class="col-lg-7">
+      <div class="badge-ai d-inline-block rounded-pill px-4 py-2" style="background:rgba(13,148,136,0.1);color:var(--medical);">
+        <i class="bi bi-cpu-fill me-2"></i>AI Powered Diagnosis Pipeline
+      </div>
+      <h1 class="display-6 fw-bold mt-3" style="color:var(--dark); font-size: 2.8rem;">Advanced <span style="color:var(--medical);">Deep Learning</span> Technology</h1>
+      <p class="lead text-muted">PneuVision AI combines ResNet50 transfer learning, Grad‑CAM explainability, and intelligent medical imaging techniques to detect pneumonia conditions accurately.</p>
+    </div>
+    <div class="col-lg-5 text-center">
+      <!-- Reliable lung X‑ray icon (Icons8 - no hotlink issues) -->
+      <img src="https://img.icons8.com/color/240/lungs.png" alt="Lung X-ray Analysis" style="max-width: 280px; width: 100%;" referrerpolicy="no-referrer">
+    </div>
+  </div>
+
+  <!-- Technology Cards -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="glass-card text-center">
+        <div class="tech-icon"><i class="bi bi-diagram-3-fill"></i></div>
+        <h4>ResNet50 CNN</h4>
+        <p class="text-muted mt-2">Deep CNN trained using transfer learning for chest X‑ray classification.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="glass-card text-center">
+        <div class="tech-icon"><i class="bi bi-eye-fill"></i></div>
+        <h4>Grad‑CAM AI</h4>
+        <p class="text-muted mt-2">Explainable AI heatmaps visualise infected lung regions.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="glass-card text-center">
+        <div class="tech-icon"><i class="bi bi-bar-chart-fill"></i></div>
+        <h4>Transfer Learning</h4>
+        <p class="text-muted mt-2">Uses pretrained ImageNet knowledge to improve medical image prediction.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Pipeline / Workflow (green line removed) -->
+  <div class="text-center mb-4">
+    <h2 class="section-title no-underline">AI Detection <span>Workflow</span></h2>
+  </div>
+  <div class="row g-4 mb-5">
+    <div class="col-md-3">
+      <div class="pipeline-step">
+        <div class="step-number">1</div>
+        <h5>Image Upload</h5>
+        <p class="text-muted mt-2">User uploads chest X‑ray securely.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="pipeline-step">
+        <div class="step-number">2</div>
+        <h5>Preprocessing</h5>
+        <p class="text-muted mt-2">Resized to 224×224 and normalised.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="pipeline-step">
+        <div class="step-number">3</div>
+        <h5>AI Prediction</h5>
+        <p class="text-muted mt-2">ResNet50 predicts bacterial, viral or normal.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="pipeline-step">
+        <div class="step-number">4</div>
+        <h5>Grad‑CAM Output</h5>
+        <p class="text-muted mt-2">Heatmap explains infected regions.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Model Training Details -->
+  <div class="glass-card p-4 mb-5">
+    <h2 class="section-title">Model <span>Training</span></h2>
+    <div class="row mt-3">
+      <div class="col-md-6">
+        <ul class="list-group list-group-flush bg-transparent">
+          <li class="list-group-item bg-transparent"><strong>Input Size:</strong> 224 × 224 pixels</li>
+          <li class="list-group-item bg-transparent"><strong>Architecture:</strong> ResNet50 + Dense Layers</li>
+          <li class="list-group-item bg-transparent"><strong>Activation:</strong> ReLU + Softmax</li>
+          <li class="list-group-item bg-transparent"><strong>Optimizer:</strong> Adam Optimizer</li>
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <ul class="list-group list-group-flush bg-transparent">
+          <li class="list-group-item bg-transparent"><strong>Loss Function:</strong> Categorical Crossentropy</li>
+          <li class="list-group-item bg-transparent"><strong>Dropout:</strong> 0.5 Regularization</li>
+          <li class="list-group-item bg-transparent"><strong>Data Augmentation:</strong> Rotation, Zoom, Flip</li>
+          <li class="list-group-item bg-transparent"><strong>Framework:</strong> TensorFlow + Keras</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Validation Metrics (green line removed) -->
+  <div class="text-center mb-4">
+    <h2 class="section-title no-underline">Validation <span>Performance</span></h2>
+  </div>
+  <div class="row g-4 mb-5">
+    <div class="col-md-3">
+      <div class="metric-box"><h2>96%</h2><p>Accuracy</p></div>
+    </div>
+    <div class="col-md-3">
+      <div class="metric-box"><h2>0.94</h2><p>Precision</p></div>
+    </div>
+    <div class="col-md-3">
+      <div class="metric-box"><h2>0.93</h2><p>Recall</p></div>
+    </div>
+    <div class="col-md-3">
+      <div class="metric-box"><h2>0.935</h2><p>F1 Score</p></div>
+    </div>
+  </div>
+</main>
+
+<footer class="py-4 text-center">
+  <div class="container">
+    <p class="mb-0 text-muted">© 2026 PneuVision AI • ResNet50 + Grad‑CAM Powered Diagnosis</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

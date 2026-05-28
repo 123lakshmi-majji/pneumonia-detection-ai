@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PneuVision AI | About</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{font-family:'Poppins',sans-serif;}
+    :root{--medical:#0d9488;--dark:#062c30;}
+    body{background:#f4f9ff;}
+    .navbar{backdrop-filter:blur(12px);background:rgba(255,255,255,0.7);border-bottom:1px solid rgba(255,255,255,0.2);}
+    .navbar-brand{font-size:1.7rem;font-weight:700;color:var(--medical);}
+    .nav-link{color:#333 !important;font-weight:500;margin-left:10px;}
+    .nav-link:hover{color:var(--medical) !important;}
+    .btn-medical{background:var(--medical);color:white;padding:12px 28px;border-radius:50px;font-weight:600;transition:0.3s;border:none;}
+    .btn-medical:hover{transform:translateY(-2px);background:#0f766e;}
+    .btn-outline-medical{border:2px solid var(--medical);color:var(--medical);padding:12px 28px;border-radius:50px;font-weight:600;transition:0.3s;background:transparent;}
+    .btn-outline-medical:hover{background:var(--medical);color:white;}
+    .glass-card{background:rgba(255,255,255,0.6);backdrop-filter:blur(18px);border-radius:25px;padding:30px;border:1px solid rgba(255,255,255,0.3);height:100%;transition:0.3s;}
+    .glass-card:hover{transform:translateY(-5px);}
+    .section-title{font-weight:700;color:var(--dark);margin-bottom:1rem;position:relative;display:inline-block;}
+    .section-title:after{content:'';position:absolute;bottom:-8px;left:0;width:60px;height:3px;background:var(--medical);border-radius:3px;}
+    /* Remove underline for specific headings */
+    .section-title.no-underline:after { display: none; }
+    footer{background:white;border-top:1px solid #eee;}
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR – identical to home.html (Home, About, Technology, Login, Get Started) -->
+<nav class="navbar navbar-expand-lg fixed-top py-3">
+  <div class="container">
+    <a class="navbar-brand" href="/"><i class="bi bi-activity"></i> PneuVision AI</a>
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-lg-center">
+        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="/technology">Technology</a></li>
+        <li class="nav-item ms-lg-3 mt-3 mt-lg-0"><a href="/login" class="btn btn-outline-medical">Login</a></li>
+        <li class="nav-item ms-lg-2 mt-3 mt-lg-0"><a href="/signup" class="btn btn-medical">Get Started</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container" style="margin-top: 100px;">
+  <!-- Hero section with image on the right -->
+  <div class="row align-items-center mb-5">
+    <div class="col-lg-7">
+      <div class="badge-ai d-inline-block rounded-pill px-4 py-2" style="background:rgba(13,148,136,0.1);color:var(--medical);"><i class="bi bi-info-circle me-2"></i>Our Story</div>
+      <h1 class="display-5 fw-bold mt-3" style="color:var(--dark);">About PneuVision AI</h1>
+      <p class="lead text-muted">Bridging AI and radiology to save lives.</p>
+    </div>
+    <div class="col-lg-5 text-center">
+      <img src="https://cdn-icons-png.flaticon.com/512/4320/4320337.png" alt="Medical AI" style="max-width: 280px; width: 100%;">
+    </div>
+  </div>
+
+  <!-- Mission & Vision cards -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-6"><div class="glass-card"><i class="bi bi-bullseye fs-1" style="color:var(--medical);"></i><h3 class="mt-3 fw-semibold">Our Mission</h3><p class="text-muted">To empower clinicians worldwide with fast, accurate, and explainable AI for pneumonia detection – reducing diagnostic delays and improving patient outcomes.</p></div></div>
+    <div class="col-md-6"><div class="glass-card"><i class="bi bi-eye fs-1" style="color:var(--medical);"></i><h3 class="mt-3 fw-semibold">Our Vision</h3><p class="text-muted">A future where AI‑augmented diagnostics are accessible in every healthcare setting, from tertiary hospitals to rural clinics.</p></div></div>
+  </div>
+
+  <!-- Why Pneumonia / Our Solution -->
+  <div class="glass-card p-5 mb-5">
+    <div class="row align-items-center">
+      <div class="col-md-7"><h2 class="fw-bold" style="color:var(--dark);">Why Pneumonia?</h2><p>Pneumonia kills over 2.5 million people annually – many deaths could be prevented with timely diagnosis. Chest X‑ray interpretation is expert‑dependent and often delayed.</p><h2 class="fw-bold mt-4" style="color:var(--dark);">Our Solution</h2><p>PneuVision AI delivers instant, explainable pneumonia classification (bacterial / viral / normal) using a ResNet50 deep learning model, validated on thousands of radiographs.</p></div>
+      <div class="col-md-5 text-center"><i class="bi bi-heart-pulse display-1" style="color:var(--medical);"></i></div>
+    </div>
+  </div>
+
+  <!-- Built by Experts – green underline removed -->
+  <div class="text-center mb-4"><h2 class="section-title no-underline">Built by Experts</h2></div>
+  <div class="row g-4 mb-5">
+    <div class="col-md-4"><div class="glass-card text-center"><i class="bi bi-person-circle fs-1" style="color:var(--medical);"></i><h5 class="mt-2">AI Engineers</h5><p class="small text-muted">Deep learning specialists from medical imaging research.</p></div></div>
+    <div class="col-md-4"><div class="glass-card text-center"><i class="bi bi-heart-pulse fs-1" style="color:var(--medical);"></i><h5 class="mt-2">Radiologists</h5><p class="small text-muted">Clinical validation and ground‑truth labeling.</p></div></div>
+    <div class="col-md-4"><div class="glass-card text-center"><i class="bi bi-shield-check fs-1" style="color:var(--medical);"></i><h5 class="mt-2">Data Scientists</h5><p class="small text-muted">Responsible AI and bias mitigation.</p></div></div>
+  </div>
+</main>
+
+<footer class="py-4 text-center"><div class="container"><p class="mb-0 text-muted">© 2026 PneuVision AI — Clinical decision support system</p></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

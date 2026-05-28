@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PneuVision AI | Diagnosis Result</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+  <style>
+    :root { --medical: #0d9488; }
+    .text-medical { color: var(--medical) !important; }
+    .bg-medical-soft { background-color: rgba(13, 148, 136, 0.08); }
+    .btn-medical {
+      background-color: var(--medical);
+      border: none;
+      color: white;
+      transition: all 0.2s;
+    }
+    .btn-medical:hover {
+      background-color: #0f766e;
+      transform: translateY(-1px);
+    }
+    .btn-outline-medical {
+      border: 1px solid var(--medical);
+      color: var(--medical);
+      background: transparent;
+    }
+    .btn-outline-medical:hover {
+      background-color: var(--medical);
+      color: white;
+    }
+    .nav-link.active, .nav-link:hover {
+      color: var(--medical) !important;
+    }
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+    }
+    .meter-bg { background: var(--border); border-radius: 20px; height: 8px; overflow: hidden; }
+    .meter-fill { height: 100%; border-radius: 20px; transition: width 0.6s; }
+    .meter-fill-normal { background: linear-gradient(90deg, #6ae8be, #4c7a69); }
+    .meter-fill-bacteria { background: linear-gradient(90deg, #f46c6c, #cd6363); }
+    .meter-fill-virus { background: linear-gradient(90deg, #f7ee51, #e3b644); }
+    .image-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .image-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      max-height: 320px;
+    }
+    .scan-label-tag {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(81, 80, 80, 0.7);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      backdrop-filter: blur(4px);
+      z-index: 2;
+    }
+  </style>
+</head>
+<body class="hero-gradient">
+
+<!-- ========== TEAL NAVBAR (updated to show profile picture) ========== -->
+<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+  <div class="container-fluid px-lg-5">
+    <a class="navbar-brand d-flex align-items-center" href="/dashboard">
+      <i class="bi bi-activity text-medical fs-3 me-2"></i>
+      <span class="fw-bold fs-4 text-medical">PneuVision<span class="fw-light"> AI</span></span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav mx-auto gap-3 nav-links-spaced">
+        <li class="nav-item"><a class="nav-link fw-semibold" href="/dashboard"><i class="bi bi-grid-fill me-1"></i> Dashboard</a></li>
+        {% if session.username %}
+          <li class="nav-item"><a class="nav-link fw-semibold" href="/upload"><i class="bi bi-cloud-upload-fill me-1"></i> Scan Radiograph</a></li>
+          <li class="nav-item"><a class="nav-link fw-semibold" href="/model"><i class="bi bi-info-circle-fill me-1"></i> Model</a></li>
+          <li class="nav-item"><a class="nav-link fw-semibold" href="/contact"><i class="bi bi-envelope-fill me-1"></i> Contact</a></li>
+        {% endif %}
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        {% if session.username %}
+          <div class="dropdown">
+            <button class="btn btn-outline-medical dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+              {% if current_user and current_user.profile_pic %}
+                <img src="{{ current_user.profile_pic }}" width="30" height="30" class="rounded-circle" style="object-fit: cover;">
+              {% else %}
+                <i class="bi bi-person-circle"></i>
+              {% endif %}
+              {{ session.username }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <!-- My Profile link -->
+              <li><a class="dropdown-item" href="/profile"><i class="bi bi-person-badge"></i> My Profile</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="/logout"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+            </ul>
+          </div>
+        {% else %}
+          <a href="/login" class="btn btn-outline-medical"><i class="bi bi-box-arrow-in-right me-1"></i> Login</a>
+          <a href="/signup" class="btn btn-medical"><i class="bi bi-person-plus-fill me-1"></i> Sign Up</a>
+        {% endif %}
+        <button id="themeToggle" class="btn-toggle-theme"><i id="themeIcon" class="bi bi-moon-stars-fill"></i></button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="container my-5">
+  <div class="row g-4">
+    <!-- Left Column: Images -->
+    <div class="col-lg-7">
+      <div class="glass-card h-100 p-4">
+        <h4 class="fw-bold mb-3"><i class="bi bi-eye-fill text-medical me-2"></i> Radiograph Interpretations</h4>
+        <p class="text-muted small">Grad‑CAM highlights regions of high activation (red) used for classification.</p>
+        <div class="row g-4 mt-2">
+          <div class="col-md-6">
+            <div class="image-card">
+              <span class="scan-label-tag">Original X‑Ray</span>
+              <img src="{{ record.filename }}" alt="Original X-Ray">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="image-card">
+              <span class="scan-label-tag">Grad‑CAM Heatmap</span>
+              {% if record.gradcam_path %}
+                <img src="{{ record.gradcam_path }}" alt="Grad-CAM">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center h-100 w-100 bg-dark text-white-50">
+                  <span class="small p-3 text-center"><i class="bi bi-exclamation-triangle"></i> Grad‑CAM unavailable</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Results -->
+    <div class="col-lg-5">
+      <div class="glass-card h-100 d-flex flex-column p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="font-monospace text-muted small">ID: PND-{{ "%05d" | format(record.id) }}</span>
+          <span class="badge bg-medical-soft text-medical px-3 py-2 fw-semibold"><i class="bi bi-cpu-fill me-1"></i> ResNet50</span>
+        </div>
+        <h5 class="text-muted mb-1 text-uppercase small">Model Prediction</h5>
+        <h2 class="fw-bold mb-3">
+          {% if record.predicted_class == 'Normal' %}
+            <span class="text-success"><i class="bi bi-heart-pulse-fill me-2"></i> {{ record.predicted_class }}</span>
+          {% elif record.predicted_class == 'Bacterial Pneumonia' %}
+            <span class="text-danger"><i class="bi bi-virus me-2"></i> {{ record.predicted_class }}</span>
+          {% else %}
+            <span class="text-warning"><i class="bi bi-bug-fill me-2"></i> {{ record.predicted_class }}</span>
+          {% endif %}
+        </h2>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="fw-semibold">Confidence</span>
+            <span class="fw-bold">{{ record.confidence_pct }}%</span>
+          </div>
+          <div class="meter-bg">
+            <div class="meter-fill {% if record.predicted_class == 'Normal' %}meter-fill-normal{% elif record.predicted_class == 'Bacterial Pneumonia' %}meter-fill-bacteria{% else %}meter-fill-virus{% endif %}" style="width: {{ record.confidence_pct }}%"></div>
+          </div>
+        </div>
+        <div class="p-3 rounded mb-4 bg-medical-soft border-start border-4 {% if record.predicted_class == 'Normal' %}border-success{% elif record.predicted_class == 'Bacterial Pneumonia' %}border-danger{% else %}border-warning{% endif %}">
+          <h6 class="fw-bold mb-1">Clinical Interpretation</h6>
+          <p class="small mb-0">{{ explanation }}</p>
+        </div>
+        <div class="mt-auto pt-3">
+          <div class="d-grid gap-3">
+            <!-- Download PDF - solid teal -->
+            <a href="/download_report/{{ record.id }}" class="btn btn-medical btn-lg py-3"><i class="bi bi-file-earmark-pdf-fill me-2"></i> Download PDF Report</a>
+            <!-- Scan Another - outline teal -->
+            <a href="/upload" class="btn btn-outline-medical py-2"><i class="bi bi-arrow-repeat me-2"></i> Scan Another X‑Ray</a>
+            <!-- Back to Dashboard - points to /dashboard -->
+            <a href="/dashboard" class="btn btn-outline-medical py-2"><i class="bi bi-grid-fill me-2"></i> Back to Dashboard</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer py-4 text-center mt-5">
+  <div class="container">
+    <p class="mb-0 small text-muted">&copy; 2026 PneuVision AI — ResNet50 + Grad‑CAM | Clinical decision support</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/main.js"></script>
+</body>
+</html>

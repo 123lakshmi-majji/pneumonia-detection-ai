@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PneuVision AI | Dashboard</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --medical: #0d9488;
+    }
+
+    .text-medical {
+      color: var(--medical) !important;
+    }
+
+    .bg-medical-soft {
+      background-color: rgba(13, 148, 136, 0.08);
+    }
+
+    .btn-medical {
+      background-color: var(--medical);
+      border: none;
+      color: white;
+      transition: all 0.2s;
+    }
+
+    .btn-medical:hover {
+      background-color: #0f766e;
+      transform: translateY(-1px);
+      color: white;
+    }
+
+    .btn-outline-medical {
+      border: 1px solid var(--medical);
+      color: var(--medical);
+      background: transparent;
+    }
+
+    .btn-outline-medical:hover {
+      background-color: var(--medical);
+      color: white;
+    }
+
+    .nav-link.active,
+    .nav-link:hover {
+      color: var(--medical) !important;
+    }
+
+    .badge-diagnosis {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 130px;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 30px;
+      gap: 0.4rem;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .badge-normal {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-bacteria {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .badge-virus {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .meter-fill-normal {
+      background: linear-gradient(90deg, #10b981, #34d399);
+    }
+
+    .meter-fill-bacteria {
+      background: linear-gradient(90deg, #ef4444, #f87171);
+    }
+
+    .meter-fill-virus {
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+    }
+
+    .hero-banner {
+      width: 100%;
+      border-radius: 0;
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      margin-bottom: 2rem;
+    }
+
+    /* ========================= */
+    /* IMPROVED TABLE STYLING */
+    /* ========================= */
+
+    .table thead th {
+      vertical-align: middle;
+      text-align: center;
+      border-bottom: 2px solid rgba(13, 148, 136, 0.15);
+      letter-spacing: 0.3px;
+      font-size: 0.92rem;
+      background: rgba(13, 148, 136, 0.04);
+      color: var(--medical);
+      padding-top: 1rem !important;
+      padding-bottom: 1rem !important;
+    }
+
+    .table tbody td {
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: rgba(13, 148, 136, 0.04);
+      transition: 0.2s ease;
+    }
+
+    .table tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    .table tbody tr:hover {
+      transform: scale(1.002);
+    }
+
+    .table img {
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .meter-bg {
+      width: 100%;
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+
+    .table-responsive {
+      border-radius: 0 0 20px 20px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body class="hero-gradient">
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+  <div class="container-fluid px-lg-5">
+
+    <a class="navbar-brand d-flex align-items-center" href="/dashboard">
+      <i class="bi bi-activity text-medical fs-3 me-2"></i>
+      <span class="fw-bold fs-4 text-medical">
+        PneuVision<span class="fw-light"> AI</span>
+      </span>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+
+      <ul class="navbar-nav mx-auto gap-3 nav-links-spaced">
+
+        <li class="nav-item">
+          <a class="nav-link fw-semibold active" href="/dashboard">
+            <i class="bi bi-grid-fill me-1"></i> Dashboard
+          </a>
+        </li>
+
+        {% if session.username %}
+
+        <li class="nav-item">
+          <a class="nav-link fw-semibold" href="/upload">
+            <i class="bi bi-cloud-upload-fill me-1"></i> Scan Radiograph
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link fw-semibold" href="/model">
+            <i class="bi bi-info-circle-fill me-1"></i> Model
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link fw-semibold" href="/contact">
+            <i class="bi bi-envelope-fill me-1"></i> Contact
+          </a>
+        </li>
+
+        {% endif %}
+      </ul>
+
+      <div class="d-flex align-items-center gap-2">
+
+        {% if session.username %}
+
+        <div class="dropdown">
+          <button class="btn btn-outline-medical dropdown-toggle d-flex align-items-center gap-2"
+                  type="button"
+                  data-bs-toggle="dropdown">
+            {% if current_user and current_user.profile_pic %}
+              <img src="{{ current_user.profile_pic }}" width="30" height="30" class="rounded-circle" style="object-fit: cover;">
+            {% else %}
+              <i class="bi bi-person-circle"></i>
+            {% endif %}
+            {{ session.username }}
+          </button>
+
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <a class="dropdown-item" href="/profile">
+                <i class="bi bi-person-badge"></i> My Profile
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" href="/logout">
+                <i class="bi bi-box-arrow-right"></i> Logout
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {% else %}
+
+        <a href="/login" class="btn btn-outline-medical">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Login
+        </a>
+
+        <a href="/signup" class="btn btn-medical">
+          <i class="bi bi-person-plus-fill me-1"></i> Sign Up
+        </a>
+
+        {% endif %}
+
+        <button id="themeToggle" class="btn-toggle-theme">
+          <i id="themeIcon" class="bi bi-moon-stars-fill"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="my-5">
+
+  <!-- HERO -->
+  <div class="glass-card mb-5 text-center py-5 px-3 hero-banner">
+
+    <div class="container">
+
+      <div class="col-lg-10 mx-auto">
+
+        <span class="badge rounded-pill bg-medical-soft text-medical px-3 py-2 mb-3 fw-semibold">
+          <i class="bi bi-graph-up me-1"></i>
+          Next-Gen Clinical Decision Support
+        </span>
+
+        <h1 class="display-5 fw-bold mb-3">
+          Chest X-Ray Pneumonia Classification
+        </h1>
+
+        <p class="lead fs-5 text-muted mb-4">
+          Harnessing <strong>ResNet50 Transfer Learning</strong> and
+          <strong>Explainable AI (Grad-CAM)</strong>
+          to identify Normal, Bacterial, and Viral Pneumonia.
+        </p>
+
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+
+          <a href="/upload" class="btn btn-medical btn-lg px-5 py-3">
+            <i class="bi bi-play-circle-fill me-2"></i>
+            Start Diagnostic Scan
+          </a>
+
+          <a href="/model" class="btn btn-outline-medical btn-lg px-5 py-3">
+            <i class="bi bi-book-fill me-2"></i>
+            Explore Science
+          </a>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="container">
+
+    <h3 class="fw-bold mb-4">
+      <i class="bi bi-bar-chart-fill text-medical me-2"></i>
+      System Activity Overview
+    </h3>
+
+    <!-- STATS -->
+    <div class="row g-4 mb-5">
+
+      <div class="col-md-3">
+        <div class="glass-card text-center p-3">
+          <i class="bi bi-shield-fill-check fs-1 text-medical"></i>
+          <h5 class="text-muted mt-2">Total Scans</h5>
+          <h2 class="display-6 fw-bold text-medical">{{ stats.total }}</h2>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="glass-card text-center p-3">
+          <i class="bi bi-heart-pulse-fill fs-1 text-medical"></i>
+          <h5 class="text-muted mt-2">Normal</h5>
+          <h2 class="display-6 fw-bold text-medical">{{ stats.normal }}</h2>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="glass-card text-center p-3">
+          <i class="bi bi-virus fs-1 text-medical"></i>
+          <h5 class="text-muted mt-2">Bacterial</h5>
+          <h2 class="display-6 fw-bold text-medical">{{ stats.bacterial }}</h2>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="glass-card text-center p-3">
+          <i class="bi bi-bug-fill fs-1 text-medical"></i>
+          <h5 class="text-muted mt-2">Viral</h5>
+          <h2 class="display-6 fw-bold text-medical">{{ stats.viral }}</h2>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TABLE -->
+    <div class="glass-card p-0 overflow-hidden">
+
+      <div class="p-4 border-bottom">
+        <h4 class="fw-bold mb-0">
+          <i class="bi bi-clock-history text-medical me-2"></i>
+          Recent Clinical Scans
+        </h4>
+      </div>
+
+      {% if history %}
+
+      <div class="table-responsive">
+
+        <table class="table table-hover align-middle mb-0">
+
+          <!-- UPDATED TABLE HEAD -->
+          <thead class="table-light">
+
+            <tr class="text-center align-middle">
+
+              <th>
+                <i class="bi bi-hash me-1"></i>
+                Scan ID
+              </th>
+
+              <th>
+                <i class="bi bi-image-fill me-1"></i>
+                X-Ray Preview
+              </th>
+
+              <th>
+                <i class="bi bi-clock-fill me-1"></i>
+                Timestamp
+              </th>
+
+              <th>
+                <i class="bi bi-clipboard2-pulse-fill me-1"></i>
+                Diagnosis
+              </th>
+
+              <th>
+                <i class="bi bi-bar-chart-fill me-1"></i>
+                Confidence
+              </th>
+
+              <th>
+                <i class="bi bi-gear-fill me-1"></i>
+                Actions
+              </th>
+
+            </tr>
+          </thead>
+
+          <tbody>
+
+            {% for record in history %}
+
+            <tr>
+
+              <td class="font-monospace text-medical fw-semibold">
+                PND-{{ "%05d" | format(record.id) }}
+              </td>
+
+              <td>
+                <div class="d-flex align-items-center justify-content-center gap-2">
+
+                  <img src="{{ record.filename }}"
+                       width="50"
+                       height="50"
+                       class="border shadow-sm">
+
+                  <span class="small text-muted">
+                    {{ record.filename.split('/')[-1][:20] }}
+                  </span>
+
+                </div>
+              </td>
+
+              <td class="small text-muted">
+                {{ record.timestamp }}
+              </td>
+
+              <td>
+
+                {% if record.predicted_class == 'Normal' %}
+
+                <span class="badge-diagnosis badge-normal">
+                  <i class="bi bi-check-circle-fill me-1"></i>
+                  Normal
+                </span>
+
+                {% elif record.predicted_class == 'Bacterial Pneumonia' %}
+
+                <span class="badge-diagnosis badge-bacteria">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                  Bacterial
+                </span>
+
+                {% else %}
+
+                <span class="badge-diagnosis badge-virus">
+                  <i class="bi bi-exclamation-circle-fill me-1"></i>
+                  Viral
+                </span>
+
+                {% endif %}
+
+              </td>
+
+              <td style="min-width: 180px;">
+
+                <div class="d-flex align-items-center gap-2">
+
+                  <span class="fw-semibold small">
+                    {{ (record.confidence * 100) | round(2) }}%
+                  </span>
+
+                  <div class="meter-bg flex-grow-1">
+
+                    <div class="meter-fill
+                      {% if record.predicted_class == 'Normal' %}
+                        meter-fill-normal
+                      {% elif record.predicted_class == 'Bacterial Pneumonia' %}
+                        meter-fill-bacteria
+                      {% else %}
+                        meter-fill-virus
+                      {% endif %}"
+
+                      style="width: {{ record.confidence * 100 }}%;">
+                    </div>
+
+                  </div>
+                </div>
+              </td>
+
+              <!-- UPDATED ACTION ALIGNMENT -->
+              <td>
+
+                <div class="d-flex justify-content-center gap-2">
+
+                  <a href="/result/{{ record.id }}"
+                     class="btn btn-outline-medical btn-sm">
+
+                    <i class="bi bi-eye-fill"></i>
+                    View
+                  </a>
+
+                  <a href="/download_report/{{ record.id }}"
+                     class="btn btn-outline-secondary btn-sm">
+
+                    <i class="bi bi-file-pdf-fill"></i>
+                    PDF
+                  </a>
+
+                </div>
+
+              </td>
+
+            </tr>
+
+            {% endfor %}
+
+          </tbody>
+        </table>
+      </div>
+
+      {% else %}
+
+      <div class="text-center py-5">
+
+        <i class="bi bi-folder2-open text-muted display-3"></i>
+
+        <h5 class="mt-3">No scans yet</h5>
+
+        <a href="/upload" class="btn btn-medical mt-3">
+          Upload First Scan
+        </a>
+
+      </div>
+
+      {% endif %}
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="footer py-4 text-center mt-5">
+
+  <div class="container">
+    <p class="mb-0">
+      &copy; 2026 PneuVision AI — Powered by TensorFlow & ResNet50
+    </p>
+  </div>
+
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/main.js"></script>
+
+</body>
+</html>
