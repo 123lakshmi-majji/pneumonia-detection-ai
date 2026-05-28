@@ -6,3 +6,4 @@ pillow>=9.0.0
 scikit-learn>=1.0.0
 reportlab>=3.6.0
 opencv-python>=4.5.0
+gunicorn
