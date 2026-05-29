@@ -57,15 +57,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ========================= COMPATIBILITY PATCH FOR OLDER TENSORFLOW =========================
 class CompatibleInputLayer(tf.keras.layers.InputLayer):
-    def __init__(self, *args, batch_shape=None, optional=None, **kwargs):
-        # Remove the problematic arguments before passing to parent
-        if 'batch_shape' in kwargs:
-            del kwargs['batch_shape']
-        if 'optional' in kwargs:
-            del kwargs['optional']
-        # If batch_shape was passed as positional, handle it
-        if batch_shape is not None:
-            kwargs['batch_shape'] = batch_shape
+    def __init__(self, *args, **kwargs):
+        # Remove the problematic arguments
+        kwargs.pop('batch_shape', None)
+        kwargs.pop('optional', None)
         super().__init__(*args, **kwargs)
 
 # ========================= DEBUG: LIST FILES AT STARTUP =========================
