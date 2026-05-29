@@ -57,10 +57,18 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ========================= COMPATIBILITY PATCH FOR OLDER TENSORFLOW =========================
 class CompatibleInputLayer(tf.keras.layers.InputLayer):
-    def __init__(self, *args, **kwargs):
-        # Remove the problematic arguments
-        kwargs.pop('batch_shape', None)
-        kwargs.pop('optional', None)
+    def __init__(self, *args, batch_shape=None, optional=None, **kwargs):
+        # Remove 'optional' if present (TF 2.16+)
+        if 'optional' in kwargs:
+            del kwargs['optional']
+        # Handle batch_shape from positional argument
+        if batch_shape is not None:
+            kwargs['batch_shape'] = batch_shape
+        # CRITICAL FIX FOR TF 2.15: Convert batch_shape to shape (without batch dimension)
+        if 'batch_shape' in kwargs and 'shape' not in kwargs:
+            # batch_shape = [None, 224, 224, 3] -> shape = [224, 224, 3]
+            shape = kwargs['batch_shape'][1:]
+            kwargs['shape'] = shape
         super().__init__(*args, **kwargs)
 
 # ========================= DEBUG: LIST FILES AT STARTUP =========================
@@ -93,7 +101,7 @@ def load_dl_model():
             model = tf.keras.models.load_model(
                 model_path,
                 compile=False,
-                custom_objects={'InputLayer': CompatibleInputLayer}
+                
             )
             print("✅ Model loaded successfully")
         except Exception as e:
