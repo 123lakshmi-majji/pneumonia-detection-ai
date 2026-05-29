@@ -56,7 +56,6 @@ label_map = None
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ========================= COMPATIBILITY PATCH FOR OLDER TENSORFLOW =========================
-# This fixes the "InputLayer" error when loading a model saved with TF 2.16+
 class CompatibleInputLayer(tf.keras.layers.InputLayer):
     def __init__(self, *args, batch_shape=None, optional=None, **kwargs):
         # Remove the problematic arguments before passing to parent
@@ -68,9 +67,6 @@ class CompatibleInputLayer(tf.keras.layers.InputLayer):
         if batch_shape is not None:
             kwargs['batch_shape'] = batch_shape
         super().__init__(*args, **kwargs)
-
-# Register the custom object globally so that load_model uses it
-tf.keras.utils.get_custom_objects()['InputLayer'] = CompatibleInputLayer
 
 # ========================= DEBUG: LIST FILES AT STARTUP =========================
 print("=== Starting up ===")
@@ -84,11 +80,7 @@ if os.path.exists(model_dir):
 else:
     print(f"❌ model folder NOT found at {model_dir}")
 
-# Also check if the model file exists directly (maybe in root)
-model_in_root = os.path.join(BASE_DIR, "pneumonia_model.h5")
-print(f"Model file in root? {os.path.exists(model_in_root)}")
-
-# ========================= LOAD AI MODEL =========================
+# ========================= LOAD AI MODEL (FIXED) =========================
 def load_dl_model():
     global model, label_map
 
@@ -99,18 +91,15 @@ def load_dl_model():
     print(f"📁 Model file exists? {os.path.exists(model_path)}")
     print(f"📁 Label encoder exists? {os.path.exists(encoder_path)}")
 
-    # If not found, try looking in current directory root
-    if not os.path.exists(model_path):
-        alt_path = os.path.join(BASE_DIR, "pneumonia_model.h5")
-        print(f"Trying alternative path: {alt_path} exists? {os.path.exists(alt_path)}")
-        if os.path.exists(alt_path):
-            model_path = alt_path
-            print(f"✅ Using alternative model path: {model_path}")
-
     if os.path.exists(model_path):
         try:
             print("⏳ Attempting to load model with compatibility patch...")
-            model = tf.keras.models.load_model(model_path, compile=False)
+            # 🔥 CRITICAL FIX: pass custom_objects explicitly
+            model = tf.keras.models.load_model(
+                model_path,
+                compile=False,
+                custom_objects={'InputLayer': CompatibleInputLayer}
+            )
             print("✅ Model loaded successfully")
         except Exception as e:
             print(f"❌ Model load error: {e}")
