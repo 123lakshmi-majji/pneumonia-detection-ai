@@ -55,6 +55,23 @@ label_map = None
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# ========================= COMPATIBILITY PATCH FOR OLDER TENSORFLOW =========================
+# This fixes the "InputLayer" error when loading a model saved with TF 2.16+
+class CompatibleInputLayer(tf.keras.layers.InputLayer):
+    def __init__(self, *args, batch_shape=None, optional=None, **kwargs):
+        # Remove the problematic arguments before passing to parent
+        if 'batch_shape' in kwargs:
+            del kwargs['batch_shape']
+        if 'optional' in kwargs:
+            del kwargs['optional']
+        # If batch_shape was passed as positional, handle it
+        if batch_shape is not None:
+            kwargs['batch_shape'] = batch_shape
+        super().__init__(*args, **kwargs)
+
+# Register the custom object globally so that load_model uses it
+tf.keras.utils.get_custom_objects()['InputLayer'] = CompatibleInputLayer
+
 # ========================= DEBUG: LIST FILES AT STARTUP =========================
 print("=== Starting up ===")
 print(f"BASE_DIR = {BASE_DIR}")
@@ -92,7 +109,7 @@ def load_dl_model():
 
     if os.path.exists(model_path):
         try:
-            print("⏳ Attempting to load model...")
+            print("⏳ Attempting to load model with compatibility patch...")
             model = tf.keras.models.load_model(model_path, compile=False)
             print("✅ Model loaded successfully")
         except Exception as e:
