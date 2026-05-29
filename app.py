@@ -37,13 +37,6 @@ from database import (
 import database as db
 from explainable_ai import get_gradcam_heatmap, save_and_display_gradcam
 
-from config import is_render
-
-if is_render():
-    print("Running on Render → dataset loading disabled")
-else:
-    print("Local environment → dataset accessible")
-
 # ========================= FLASK APP =========================
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev_only_key_change_me")
@@ -59,29 +52,45 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 model = None
 label_map = None
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ========================= LOAD AI MODEL =========================
 def load_dl_model():
     global model, label_map
 
-    model_path = os.path.join("model", "pneumonia_model.h5")
-    encoder_path = os.path.join("model", "label_encoder.json")
+    model_path = os.path.join(BASE_DIR, "model", "pneumonia_model.h5")
+    encoder_path = os.path.join(BASE_DIR, "model", "label_encoder.json")
+
+    print(f"🔍 Looking for model at: {model_path}")
+    print(f"📁 Model file exists? {os.path.exists(model_path)}")
+    print(f"📁 Label encoder exists? {os.path.exists(encoder_path)}")
+
+    model_dir = os.path.join(BASE_DIR, "model")
+    if os.path.exists(model_dir):
+        print(f"📂 Contents of '{model_dir}': {os.listdir(model_dir)}")
+    else:
+        print(f"⚠️ model folder not found at {model_dir}")
 
     if os.path.exists(model_path):
         try:
+            print("⏳ Attempting to load model...")
             model = tf.keras.models.load_model(model_path, compile=False)
             print("✅ Model loaded successfully")
         except Exception as e:
-            print("❌ Model load error:", e)
+            print(f"❌ Model load error: {e}")
+            import traceback
+            traceback.print_exc()
             model = None
     else:
-        print("⚠️ Model file not found")
+        print("⚠️ Model file not found – check your deployment")
         model = None
 
     if os.path.exists(encoder_path):
         with open(encoder_path, "r") as f:
             label_map = json.load(f)
+        print("✅ Label encoder loaded")
     else:
+        print("⚠️ label_encoder.json not found – using fallback mapping")
         label_map = {
             "0": "Normal",
             "1": "Bacterial Pneumonia",
@@ -89,7 +98,6 @@ def load_dl_model():
         }
 
 
-# ========================= LAZY LOADER (NEW FIX) =========================
 def get_model():
     global model
     if model is None:
@@ -99,10 +107,8 @@ def get_model():
 
 # ========================= FILE VALIDATION =========================
 def allowed_file(filename):
-    return (
-        '.' in filename and
-        filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'}
-    )
+    return ('.' in filename and
+            filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'})
 
 
 # ========================= LOGIN REQUIRED DECORATOR =========================
@@ -180,7 +186,7 @@ def home():
 
 @app.route('/model')
 def model_page():
-    has_metrics = os.path.exists("static/images/accuracy_history.png")
+    has_metrics = os.path.exists(os.path.join(BASE_DIR, "static/images/accuracy_history.png"))
     return render_template('model.html', has_metrics=has_metrics)
 
 
@@ -194,7 +200,7 @@ def technology_page():
     return render_template('technology.html')
 
 
-# ========================= DASHBOARD (USER‑SPECIFIC) =========================
+# ========================= DASHBOARD =========================
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -211,132 +217,70 @@ def upload_page():
     return render_template('upload.html')
 
 
-# ========================= BALANCED X-RAY VALIDATION =========================
+# ========================= X-RAY VALIDATION =========================
 def is_likely_chest_xray(image_path):
-    """
-    Chest X-ray Validator
-
-    Rejects:
-    - Colorful screenshots
-    - Mobile UI images
-    - Selfies
-    - Documents
-    - Non X-ray images
-
-    Allows:
-    - Grayscale chest X-rays
-    """
     try:
-        # =====================================
-        # LOAD IMAGE
-        # =====================================
         img = cv2.imread(image_path)
         if img is None:
             return False
-
         img = cv2.resize(img, (512, 512))
-
-        # =====================================
-        # SPLIT CHANNELS
-        # =====================================
         b, g, r = cv2.split(img)
-
-        # =====================================
-        # COLOR DIFFERENCE CHECK
-        # =====================================
         diff_bg = np.mean(np.abs(b.astype(np.int16) - g.astype(np.int16)))
         diff_br = np.mean(np.abs(b.astype(np.int16) - r.astype(np.int16)))
         diff_gr = np.mean(np.abs(g.astype(np.int16) - r.astype(np.int16)))
-
         color_score = (diff_bg + diff_br + diff_gr) / 3
-
         if color_score > 12:
             print("Rejected: Colorful image detected")
             return False
-
-        # =====================================
-        # STRONG COLOR DETECTION
-        # =====================================
         green_pixels = np.sum((g > r + 40) & (g > b + 40))
         red_pixels = np.sum((r > g + 40) & (r > b + 40))
         blue_pixels = np.sum((b > r + 40) & (b > g + 40))
-
         total_pixels = img.shape[0] * img.shape[1]
         color_ratio = (green_pixels + red_pixels + blue_pixels) / total_pixels
-
         if color_ratio > 0.01:
             print("Rejected: Colored UI elements detected")
             return False
-
-        # =====================================
-        # CONVERT TO GRAYSCALE
-        # =====================================
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        # =====================================
-        # BRIGHTNESS CHECK
-        # =====================================
         mean_intensity = np.mean(gray)
         if mean_intensity < 15 or mean_intensity > 240:
             print("Rejected: Invalid brightness")
             return False
-
-        # =====================================
-        # TEXTURE CHECK
-        # =====================================
         variance = np.var(gray)
         if variance < 80:
             print("Rejected: Blank image")
             return False
-
-        # =====================================
-        # EDGE CHECK
-        # =====================================
         edges = cv2.Canny(gray, 50, 150)
         edge_density = np.sum(edges > 0) / edges.size
         if edge_density > 0.25:
             print("Rejected: Too many edges")
             return False
-
-        # =====================================
-        # LINE DETECTION
-        # =====================================
         lines = cv2.HoughLinesP(edges, 1, np.pi / 180, threshold=120,
                                 minLineLength=120, maxLineGap=5)
         line_count = 0 if lines is None else len(lines)
         if line_count > 120:
             print("Rejected: Screenshot/UI")
             return False
-
-        # =====================================
-        # FACE DETECTION
-        # =====================================
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
         faces = face_cascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=8)
         if len(faces) > 0:
             print("Rejected: Face detected")
             return False
-
         print("Valid Chest X-ray")
         return True
-
     except Exception as e:
         print("Validation Error:", e)
         return False
 
 
-# ========================= PREDICT ROUTE (FIXED) =========================
+# ========================= PREDICT ROUTE =========================
 @app.route('/predict', methods=['POST'])
 @login_required
 def predict():
-    global model, label_map
-
     if 'file' not in request.files:
         flash("No file selected.", "danger")
         return redirect(url_for('upload_page'))
 
     file = request.files['file']
-
     if file.filename == '':
         flash("No file selected.", "danger")
         return redirect(url_for('upload_page'))
@@ -347,10 +291,11 @@ def predict():
 
     model = get_model()
     if model is None:
-        flash("AI Model not loaded. Please try again later.", "danger")
+        flash("AI Model could not be loaded. Please check server logs.", "danger")
         return redirect(url_for('upload_page'))
 
-    temp_filename = secure_filename(f"temp_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    temp_filename = secure_filename(f"temp_{timestamp}_{file.filename}")
     temp_path = os.path.join(app.config['UPLOAD_FOLDER'], temp_filename)
     file.save(temp_path)
 
@@ -383,7 +328,7 @@ def predict():
             flash("❌ Unable to confidently analyze this image. Please upload a clearer Chest X-Ray scan.", "danger")
             return redirect(url_for('upload_page'))
 
-        gradcam_filename = f"gradcam_{temp_filename}"
+        gradcam_filename = f"gradcam_{timestamp}_{file.filename}"
         gradcam_path = os.path.join(app.config['UPLOAD_FOLDER'], gradcam_filename)
         gradcam_rel_path = None
         try:
@@ -393,7 +338,7 @@ def predict():
         except Exception as e:
             print(f"Grad-CAM Error: {e}")
 
-        final_filename = secure_filename(f"scan_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
+        final_filename = secure_filename(f"scan_{timestamp}_{file.filename}")
         final_path = os.path.join(app.config['UPLOAD_FOLDER'], final_filename)
         os.rename(temp_path, final_path)
         original_rel_path = f"/static/uploads/{final_filename}"
@@ -459,14 +404,12 @@ def download_report(record_id):
         styles = getSampleStyleSheet()
         story = []
 
-        # Title
         title = Paragraph("<font size=22 color='#0d9488'><b>PNEUMONIA DIAGNOSTIC SCAN REPORT</b></font>", styles['Title'])
         story.append(title)
         story.append(Spacer(1, 15))
         story.append(HRFlowable(width="100%", thickness=1.2, color=colors.HexColor("#0d9488")))
         story.append(Spacer(1, 20))
 
-        # Header details
         analysis_date = datetime.now().strftime("%B %d, %Y - %I:%M %p")
         confidence_pct = f"{record['confidence'] * 100:.2f}%"
         details_data = [
@@ -487,7 +430,6 @@ def download_report(record_id):
         story.append(details_table)
         story.append(Spacer(1, 25))
 
-        # Diagnostic summary
         summary_title = Paragraph("<font size=16 color='#0d9488'><b>Diagnostic Summary</b></font>", styles['Heading2'])
         story.append(summary_title)
         story.append(Spacer(1, 10))
@@ -507,13 +449,14 @@ def download_report(record_id):
         story.append(summary_table)
         story.append(Spacer(1, 30))
 
-        # Images section
         image_title = Paragraph("<font size=16 color='#0d9488'><b>Radiograph & Grad-CAM Heatmap</b></font>", styles['Heading2'])
         story.append(image_title)
         story.append(Spacer(1, 15))
 
-        original_img_path = record["filename"].lstrip('/')
-        gradcam_img_path = record.get("gradcam_path", "").lstrip('/') if record.get("gradcam_path") else None
+        original_img_path = os.path.join(BASE_DIR, record["filename"].lstrip('/'))
+        gradcam_rel = record.get("gradcam_path", "")
+        gradcam_img_path = os.path.join(BASE_DIR, gradcam_rel.lstrip('/')) if gradcam_rel else None
+
         image_row = []
         if os.path.exists(original_img_path):
             image_row.append(RLImage(original_img_path, width=220, height=220))
@@ -527,7 +470,6 @@ def download_report(record_id):
 
         story.append(Spacer(1, 30))
 
-        # Disclaimer
         disclaimer_title = Paragraph("<font size=14 color='red'><b>CLINICAL DISCLAIMER</b></font>", styles['Heading3'])
         story.append(disclaimer_title)
         story.append(Spacer(1, 10))
@@ -540,7 +482,6 @@ def download_report(record_id):
         story.append(disclaimer_text)
         story.append(Spacer(1, 25))
 
-        # Footer
         footer = Paragraph("<font size=9 color='grey'>© 2026 PneuVision AI • Deep Learning Powered Diagnostic Support</font>", styles['BodyText'])
         story.append(footer)
 
@@ -572,7 +513,7 @@ def contact_page():
     return render_template('contact.html')
 
 
-# ------------------- PROFILE ROUTE (INDENTATION FIXED) -------------------
+# ------------------- PROFILE ROUTE -------------------
 PROFILE_UPLOAD_FOLDER = os.path.join('static', 'profile_pics')
 os.makedirs(PROFILE_UPLOAD_FOLDER, exist_ok=True)
 
@@ -588,27 +529,21 @@ def profile():
         bio = request.form.get('bio', '').strip()
         profile_pic_path = user.get('profile_pic', '')
 
-        # Handle profile picture upload
         if 'profile_pic' in request.files:
             file = request.files['profile_pic']
             if file and allowed_file(file.filename):
-                # Delete old profile picture if exists
                 if profile_pic_path:
-                    old_path = profile_pic_path.lstrip('/')
+                    old_path = os.path.join(BASE_DIR, profile_pic_path.lstrip('/'))
                     if os.path.exists(old_path):
                         os.remove(old_path)
 
-                # Save new picture
-                filename = secure_filename(
-                    f"profile_{user_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
-                )
+                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                filename = secure_filename(f"profile_{user_id}_{timestamp}_{file.filename}")
                 filepath = os.path.join(PROFILE_UPLOAD_FOLDER, filename)
                 file.save(filepath)
                 profile_pic_path = f"/static/profile_pics/{filename}"
 
-        # Update database
         db.update_user_profile(user_id, full_name, bio, profile_pic_path)
-
         flash("Profile updated successfully!", "success")
         return redirect(url_for('profile'))
 
