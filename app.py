@@ -1,5 +1,6 @@
 # ========================= IMPORTS =========================
 import os
+import sys
 import json
 from datetime import datetime
 
@@ -54,6 +55,22 @@ label_map = None
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# ========================= DEBUG: LIST FILES AT STARTUP =========================
+print("=== Starting up ===")
+print(f"BASE_DIR = {BASE_DIR}")
+print(f"Current working directory: {os.getcwd()}")
+print(f"Files in BASE_DIR: {os.listdir(BASE_DIR)}")
+
+model_dir = os.path.join(BASE_DIR, "model")
+if os.path.exists(model_dir):
+    print(f"✅ model folder exists. Contents: {os.listdir(model_dir)}")
+else:
+    print(f"❌ model folder NOT found at {model_dir}")
+
+# Also check if the model file exists directly (maybe in root)
+model_in_root = os.path.join(BASE_DIR, "pneumonia_model.h5")
+print(f"Model file in root? {os.path.exists(model_in_root)}")
+
 # ========================= LOAD AI MODEL =========================
 def load_dl_model():
     global model, label_map
@@ -65,11 +82,13 @@ def load_dl_model():
     print(f"📁 Model file exists? {os.path.exists(model_path)}")
     print(f"📁 Label encoder exists? {os.path.exists(encoder_path)}")
 
-    model_dir = os.path.join(BASE_DIR, "model")
-    if os.path.exists(model_dir):
-        print(f"📂 Contents of '{model_dir}': {os.listdir(model_dir)}")
-    else:
-        print(f"⚠️ model folder not found at {model_dir}")
+    # If not found, try looking in current directory root
+    if not os.path.exists(model_path):
+        alt_path = os.path.join(BASE_DIR, "pneumonia_model.h5")
+        print(f"Trying alternative path: {alt_path} exists? {os.path.exists(alt_path)}")
+        if os.path.exists(alt_path):
+            model_path = alt_path
+            print(f"✅ Using alternative model path: {model_path}")
 
     if os.path.exists(model_path):
         try:
