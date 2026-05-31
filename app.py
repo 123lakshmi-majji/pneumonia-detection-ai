@@ -300,7 +300,7 @@ def is_likely_chest_xray(image_path):
         return False
 
 
-# ========================= PREDICT ROUTE =========================
+# ========================= PREDICT ROUTE (WITH GRAD‑CAM FIX) =========================
 @app.route('/predict', methods=['POST'])
 @login_required
 def predict():
@@ -356,15 +356,30 @@ def predict():
             flash("❌ Unable to confidently analyze this image. Please upload a clearer Chest X-Ray scan.", "danger")
             return redirect(url_for('upload_page'))
 
-        gradcam_filename = f"gradcam_{timestamp}_{file.filename}"
-        gradcam_path = os.path.join(app.config['UPLOAD_FOLDER'], gradcam_filename)
+        # ================= GRAD‑CAM GENERATION (with fallback) =================
         gradcam_rel_path = None
         try:
-            heatmap = get_gradcam_heatmap(img_batch, model, 'conv5_block3_out', pred_index=pred_index)
-            save_and_display_gradcam(temp_path, heatmap, cam_path=gradcam_path)
+            # Default ResNet50 layer name
+            target_layer = 'conv5_block3_out'
+            # Check if the layer exists; if not, find the last convolutional layer
+            try:
+                model.get_layer(target_layer)
+            except ValueError:
+                # Fallback: find the last layer with 'conv' in its name (excluding batch norm)
+                for layer in reversed(model.layers):
+                    if 'conv' in layer.name and 'bn' not in layer.name:
+                        target_layer = layer.name
+                        break
+                print(f"⚠️ Using fallback layer: {target_layer}")
+
+            heatmap = get_gradcam_heatmap(img_batch, model, target_layer, pred_index=pred_index)
+            gradcam_filename = f"gradcam_{timestamp}_{file.filename}"
+            gradcam_full_path = os.path.join(app.config['UPLOAD_FOLDER'], gradcam_filename)
+            save_and_display_gradcam(temp_path, heatmap, cam_path=gradcam_full_path)
             gradcam_rel_path = f"/static/uploads/{gradcam_filename}"
+            print("✅ Grad‑CAM saved")
         except Exception as e:
-            print(f"Grad-CAM Error: {e}")
+            print(f"⚠️ Grad‑CAM skipped: {e}")
 
         final_filename = secure_filename(f"scan_{timestamp}_{file.filename}")
         final_path = os.path.join(app.config['UPLOAD_FOLDER'], final_filename)
