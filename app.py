@@ -1,4 +1,4 @@
-# ========================= IMPORTS =========================
+#  IMPORTS 
 import os
 import sys
 import json
@@ -34,28 +34,28 @@ from database import (
 )
 
 
-# ========================= LOCAL MODULES =========================
+#  LOCAL MODULES 
 import database as db
 from explainable_ai import get_gradcam_heatmap, save_and_display_gradcam
 
-# ========================= FLASK APP =========================
+#  FLASK APP 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev_only_key_change_me")
 
-# ========================= CONFIGURATION =========================
+#  CONFIGURATION 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-# ========================= GLOBAL MODEL VARIABLES =========================
+#  GLOBAL MODEL VARIABLES 
 model = None
 label_map = None
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ========================= COMPATIBILITY PATCH FOR OLDER TENSORFLOW =========================
+#  COMPATIBILITY PATCH FOR OLDER TENSORFLOW 
 class CompatibleInputLayer(tf.keras.layers.InputLayer):
     def __init__(self, *args, batch_shape=None, optional=None, **kwargs):
         # Remove 'optional' if present (TF 2.16+)
@@ -71,7 +71,7 @@ class CompatibleInputLayer(tf.keras.layers.InputLayer):
             kwargs['shape'] = shape
         super().__init__(*args, **kwargs)
 
-# ========================= DEBUG: LIST FILES AT STARTUP =========================
+#  DEBUG: LIST FILES AT STARTUP 
 print("=== Starting up ===")
 print(f"BASE_DIR = {BASE_DIR}")
 print(f"Current working directory: {os.getcwd()}")
@@ -83,7 +83,7 @@ if os.path.exists(model_dir):
 else:
     print(f"❌ model folder NOT found at {model_dir}")
 
-# ========================= LOAD AI MODEL (FIXED) =========================
+#  LOAD AI MODEL (FIXED) 
 def load_dl_model():
     global model, label_map
 
@@ -133,13 +133,13 @@ def get_model():
     return model
 
 
-# ========================= FILE VALIDATION =========================
+#  FILE VALIDATION 
 def allowed_file(filename):
     return ('.' in filename and
             filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'})
 
 
-# ========================= LOGIN REQUIRED DECORATOR =========================
+#  LOGIN REQUIRED DECORATOR
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -150,7 +150,7 @@ def login_required(f):
     return decorated_function
 
 
-# ========================= CONTEXT PROCESSOR =========================
+#  CONTEXT PROCESSOR 
 @app.context_processor
 def inject_user():
     if 'user_id' in session:
@@ -159,7 +159,7 @@ def inject_user():
     return dict(current_user=None)
 
 
-# ========================= AUTH ROUTES =========================
+#  AUTH ROUTES 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -206,7 +206,7 @@ def logout():
     return redirect(url_for('home'))
 
 
-# ========================= PUBLIC PAGES =========================
+#  PUBLIC PAGES 
 @app.route('/')
 def home():
     return render_template('home.html')
@@ -228,7 +228,7 @@ def technology_page():
     return render_template('technology.html')
 
 
-# ========================= DASHBOARD =========================
+# DASHBOARD 
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -238,14 +238,14 @@ def dashboard():
     return render_template('dashboard.html', history=history, stats=stats)
 
 
-# ========================= UPLOAD PAGE =========================
+#  UPLOAD PAGE 
 @app.route('/upload')
 @login_required
 def upload_page():
     return render_template('upload.html')
 
 
-# ========================= X-RAY VALIDATION =========================
+#  X-RAY VALIDATION 
 def is_likely_chest_xray(image_path):
     try:
         img = cv2.imread(image_path)
@@ -300,7 +300,7 @@ def is_likely_chest_xray(image_path):
         return False
 
 
-# ========================= PREDICT ROUTE (WITH GRAD‑CAM FIX) =========================
+#  PREDICT ROUTE (WITH GRAD‑CAM FIX) 
 @app.route('/predict', methods=['POST'])
 @login_required
 def predict():
@@ -356,7 +356,7 @@ def predict():
             flash("❌ Unable to confidently analyze this image. Please upload a clearer Chest X-Ray scan.", "danger")
             return redirect(url_for('upload_page'))
 
-        # ================= GRAD‑CAM GENERATION (with fallback) =================
+        #  GRAD‑CAM GENERATION (with fallback) 
         gradcam_rel_path = None
         try:
             # Default ResNet50 layer name
@@ -403,7 +403,7 @@ def predict():
         return redirect(url_for('upload_page'))
 
 
-# ========================= RESULT PAGE =========================
+# RESULT PAGE 
 @app.route('/result/<int:record_id>')
 @login_required
 def result_page(record_id):
@@ -424,7 +424,7 @@ def result_page(record_id):
     return render_template('result.html', record=record, explanation=explanation)
 
 
-# ========================= DOWNLOAD REPORT =========================
+# DOWNLOAD REPORT 
 @app.route('/download_report/<int:record_id>')
 @login_required
 def download_report(record_id):
@@ -535,7 +535,7 @@ def download_report(record_id):
         return f"PDF generation failed: {str(e)}", 500
 
 
-# ========================= CONTACT PAGE =========================
+#  CONTACT PAGE 
 @app.route('/contact', methods=['GET', 'POST'])
 @login_required
 def contact_page():
@@ -556,7 +556,7 @@ def contact_page():
     return render_template('contact.html')
 
 
-# ------------------- PROFILE ROUTE -------------------
+#  PROFILE ROUTE 
 PROFILE_UPLOAD_FOLDER = os.path.join('static', 'profile_pics')
 os.makedirs(PROFILE_UPLOAD_FOLDER, exist_ok=True)
 
@@ -593,7 +593,7 @@ def profile():
     return render_template('profile.html', user=user)
 
 
-# ========================= RUN APP =========================
+#  RUN APP 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
